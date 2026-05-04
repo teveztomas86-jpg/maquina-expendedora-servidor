@@ -6,9 +6,11 @@ const app = express();
 
 app.use(express.json());
 
-const pedidosRouter = require('./routes/pedidos');
+const pedidosRouter       = require('./routes/pedidos');
+const { router: pagosRouter } = require('./routes/pagos');
 
-app.use('/pedido', pedidosRouter);
+app.use('/', pedidosRouter);
+app.use('/pagos', pagosRouter);   // ← ahora sí lo registramos
 
 app.listen(3000, () => {
     console.log('Servidor corriendo en puerto 3000');
