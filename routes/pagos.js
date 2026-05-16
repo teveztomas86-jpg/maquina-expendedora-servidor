@@ -33,6 +33,7 @@ router.post('/webhook', async (req, res) => {
     try {
         const payment  = new Payment(client);
         const resultado = await payment.get({ id: data.id });
+        console.log("PAGO COMPLETO:", JSON.stringify(resultado, null, 2)); // ← agregar esto
 
         const snack    = resultado.additional_info?.items?.[0]?.title  || 'desconocido';
         const precio   = resultado.transaction_amount                  || 0;
