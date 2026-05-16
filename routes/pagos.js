@@ -36,7 +36,7 @@ router.post('/webhook', async (req, res) => {
 
         const snack    = resultado.additional_info?.items?.[0]?.title  || 'desconocido';
         const precio   = resultado.transaction_amount                  || 0;
-        const orden_id = String(resultado.id);
+        const orden_id = resultado.preference_id;
 
         if (resultado.status === 'approved') {
             // Guardar transacción completada
