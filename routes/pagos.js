@@ -8,6 +8,8 @@ const client = new MercadoPagoConfig({
     accessToken: process.env.MP_ACCESS_TOKEN
 });
 
+let orden_id;
+
 async function crearOrden(snack, precio) {
     const preference = new Preference(client);
 
@@ -17,6 +19,8 @@ async function crearOrden(snack, precio) {
         }
     });
 
+    orden_id = resultado.id;
+    
     return {
         orden_id: resultado.id,
         qr_url:   resultado.init_point
@@ -37,7 +41,7 @@ router.post('/webhook', async (req, res) => {
 
         const snack    = resultado.additional_info?.items?.[0]?.title  || 'desconocido';
         const precio   = resultado.transaction_amount                  || 0;
-        const orden_id = resultado.id;
+        const webhook_id = resultado.id;
 
         if (resultado.status === 'approved') {
             // Guardar transacción completada
