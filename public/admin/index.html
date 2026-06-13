@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>T.G.I² · Panel de administración</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#eef1f7; --card:#ffffff; --ink:#1a2233; --muted:#5b6678; --line:#e4e8f0;
+    --brand:#4f46e5; --brand-2:#06b6d4; --ok:#16a34a; --warn:#d97706; --danger:#dc2626;
+    --shadow:0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.06);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer}
+  input{font-family:inherit}
+  .hidden{display:none !important}
+
+  /* ── Login ── */
+  #login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+         background:radial-gradient(1200px 600px at 70% -10%, #2b3566 0%, #141a2e 55%, #0d1120 100%);padding:20px}
+  .login-card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);width:100%;max-width:380px;
+              padding:34px 30px;text-align:center}
+  .logo{display:inline-flex;align-items:center;justify-content:center;width:62px;height:62px;border-radius:16px;
+        background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;font-weight:800;font-size:20px;
+        letter-spacing:.5px;margin-bottom:14px}
+  .login-card h1{font-size:20px;margin:6px 0 2px}
+  .login-card p{color:var(--muted);font-size:13px;margin:0 0 20px}
+  .field{text-align:left;margin-bottom:14px}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+  .field input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:11px;font-size:15px;outline:none}
+  .field input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(79,70,229,.15)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:11px;
+       padding:12px 16px;font-size:14px;font-weight:600;background:var(--brand);color:#fff;width:100%}
+  .btn:hover{filter:brightness(1.05)}
+  .btn.sec{background:#eef0fb;color:var(--brand)}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .btn.sm{width:auto;padding:9px 13px;font-size:13px}
+  .login-err{color:var(--danger);font-size:13px;min-height:18px;margin:4px 0 0}
+  .login-demo{margin-top:14px;font-size:13px}
+  .login-demo a{color:var(--brand);text-decoration:none;font-weight:600;cursor:pointer}
+
+  /* ── App shell ── */
+  header.top{background:linear-gradient(120deg,#1e2547,#2b3566);color:#fff;padding:14px 20px;
+             display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10}
+  .top .logo{width:40px;height:40px;font-size:14px;border-radius:11px;margin:0}
+  .top .brand{font-weight:700;font-size:16px;line-height:1.1}
+  .top .brand small{display:block;font-weight:400;font-size:11px;opacity:.7}
+  .top .spacer{flex:1}
+  .demo-pill{background:#f59e0b;color:#3b2606;font-weight:700;font-size:11px;padding:4px 10px;border-radius:999px}
+  .top .btn{width:auto;background:rgba(255,255,255,.12);padding:9px 14px}
+  .top .btn:hover{background:rgba(255,255,255,.2)}
+
+  nav.tabs{display:flex;gap:4px;padding:0 16px;background:#222a4d;position:sticky;top:68px;z-index:9}
+  nav.tabs button{background:none;border:none;color:#c4cae0;padding:14px 16px;font-size:14px;font-weight:600;
+                  border-bottom:3px solid transparent}
+  nav.tabs button.active{color:#fff;border-bottom-color:var(--brand-2)}
+
+  main{max-width:1080px;margin:0 auto;padding:22px 16px 60px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  h2.sec-title{font-size:18px;margin:0}
+  .seg{display:inline-flex;background:#e2e6f1;border-radius:10px;padding:3px}
+  .seg button{border:none;background:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:var(--muted)}
+  .seg button.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+  /* ── KPI cards ── */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  .kpi{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+  .kpi .lbl{font-size:12px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:7px}
+  .kpi .dot{width:9px;height:9px;border-radius:50%}
+  .kpi .val{font-size:24px;font-weight:800;margin-top:8px;letter-spacing:-.5px}
+  .kpi .sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .grid2{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-bottom:18px}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+  .card h3{margin:0 0 14px;font-size:14px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .chart-wrap{position:relative;height:230px}
+
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+  th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .chip{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;
+        font-weight:800;font-size:13px;color:#fff}
+
+  /* ── Stock cards ── */
+  .stock-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .stock-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+  .stock-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .stock-head .name{font-weight:700}
+  .stock-head .price{margin-left:auto;color:var(--muted);font-size:13px}
+  .bar{height:12px;border-radius:999px;background:#eceef5;overflow:hidden;margin:10px 0 6px}
+  .bar > span{display:block;height:100%;border-radius:999px}
+  .stock-meta{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:14px}
+  .stock-meta b{color:var(--ink)}
+  .refill-flag{font-size:12.5px;font-weight:700;margin-bottom:12px}
+
+  /* ── Precios ── */
+  .precio-row{display:grid;grid-template-columns:42px 1.4fr 1fr 1fr auto;gap:12px;align-items:end;
+              background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:10px}
+  .precio-row label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px}
+  .precio-row input{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:14px;outline:none}
+  .precio-row input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(79,70,229,.13)}
+  .precio-row .chip{align-self:center}
+  .inline-prefix{position:relative}
+  .inline-prefix span{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+  .inline-prefix input{padding-left:22px}
+
+  .empty{color:var(--muted);text-align:center;padding:30px;font-size:14px}
+
+  /* ── Toast ── */
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);opacity:0;
+         background:#1a2233;color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:600;
+         box-shadow:var(--shadow);transition:.25s;z-index:50;pointer-events:none;max-width:90vw}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast.ok{background:#13361f}
+  #toast.err{background:#3a1414}
+
+  @media(max-width:820px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .grid2{grid-template-columns:1fr}
+    .precio-row{grid-template-columns:36px 1fr 1fr;gap:10px}
+    .precio-row .btn{grid-column:1/-1}
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════ LOGIN ════════════ -->
+<div id="login">
+  <div class="login-card">
+    <div class="logo">TGI²</div>
+    <h1>Panel de administración</h1>
+    <p>Máquina expendedora de snacks</p>
+    <div class="field">
+      <label for="pass">Contraseña</label>
+      <input id="pass" type="password" placeholder="••••••••" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')login()" />
+    </div>
+    <button class="btn" onclick="login()">Entrar</button>
+    <p class="login-err" id="loginErr"></p>
+    <p class="login-demo">¿Solo querés ver el diseño? <a onclick="entrarDemo()">Probar en modo demo</a></p>
+  </div>
+</div>
+
+<!-- ════════════ APP ════════════ -->
+<div id="app" class="hidden">
+  <header class="top">
+    <div class="logo">TGI²</div>
+    <div class="brand">T.G.I²<small>Panel de administración</small></div>
+    <span id="demoPill" class="demo-pill hidden">MODO DEMO</span>
+    <div class="spacer"></div>
+    <button class="btn sm" onclick="salir()">Salir</button>
+  </header>
+
+  <nav class="tabs">
+    <button id="tab-btn-ganancias" class="active" onclick="cambiarTab('ganancias')">Ganancias</button>
+    <button id="tab-btn-stock" onclick="cambiarTab('stock')">Stock</button>
+    <button id="tab-btn-precios" onclick="cambiarTab('precios')">Precios</button>
+  </nav>
+
+  <main>
+    <!-- ───── GANANCIAS ───── -->
+    <section id="tab-ganancias">
+      <div class="row">
+        <h2 class="sec-title">Resumen de ganancias</h2>
+        <div class="seg" role="group" aria-label="Rango de tiempo">
+          <button id="r7" onclick="setRango(7)">7 días</button>
+          <button id="r30" class="active" onclick="setRango(30)">30 días</button>
+          <button id="r0" onclick="setRango(0)">Todo</button>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="lbl"><span class="dot" style="background:var(--ok)"></span>Ingresos</div>
+          <div class="val" id="kpiIngresos">—</div>
+          <div class="sub" id="kpiIngresosSub">en el período</div>
+        </div>
+        <div class="kpi">
+          <div class="lbl"><span class="dot" style="background:var(--brand)"></span>Unidades vendidas</div>
+          <div class="val" id="kpiUnidades">—</div>
+          <div class="sub">snacks despachados</div>
+        </div>
+        <div class="kpi">
+          <div class="lbl"><span class="dot" style="background:var(--brand-2)"></span>Ticket promedio</div>
+          <div class="val" id="kpiTicket">—</div>
+          <div class="sub">por venta</div>
+        </div>
+        <div class="kpi">
+          <div class="lbl"><span class="dot" style="background:var(--warn)"></span>Más vendido</div>
+          <div class="val" id="kpiTop">—</div>
+          <div class="sub" id="kpiTopSub">&nbsp;</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>Ingresos por día</h3>
+          <div class="chart-wrap"><canvas id="chartDia"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Distribución por snack</h3>
+          <div class="chart-wrap"><canvas id="chartSnack"></canvas></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Últimas ventas</h3>
+        <table>
+          <thead><tr><th>Snack</th><th>Nombre</th><th class="num">Precio</th><th class="num">Fecha</th></tr></thead>
+          <tbody id="tablaVentas"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ───── STOCK ───── -->
+    <section id="tab-stock" class="hidden">
+      <div class="row">
+        <h2 class="sec-title">Stock y recarga</h2>
+        <button class="btn sm" onclick="recargar(null)">Marcar TODO como recargado</button>
+      </div>
+      <p style="color:var(--muted);font-size:13px;margin:-6px 0 16px">
+        El número <b>“a reponer”</b> es cuántas unidades se vendieron desde la última recarga.
+        Cuando repongas físicamente, tocá <b>“Ya lo recargué”</b> para volver el contador a lleno.
+      </p>
+      <div class="stock-grid" id="stockGrid"></div>
+    </section>
+
+    <!-- ───── PRECIOS ───── -->
+    <section id="tab-precios" class="hidden">
+      <div class="row">
+        <h2 class="sec-title">Precios y configuración</h2>
+      </div>
+      <p style="color:var(--muted);font-size:13px;margin:-6px 0 16px">
+        La ESP32 solo manda la letra (A, B, C…). El <b>precio que cobra el servidor es el de acá</b>.
+        Cambialo y tocá <b>Guardar</b>.
+      </p>
+      <div id="preciosList"></div>
+    </section>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+//  Configuración
+// ════════════════════════════════════════════════════════════════════════════
+const API = '/api';                 // el panel se sirve desde el mismo servidor
+let token = localStorage.getItem('tgi_token') || '';
+let demo  = false;                  // modo demostración (sin servidor)
+let rango = 30;                     // días del resumen de ganancias
+let productos = [];
+let chartDia = null, chartSnack = null;
+
+const COLORES = ['#4f46e5','#06b6d4','#16a34a','#d97706','#db2777','#0ea5e9','#9333ea','#ca8a04'];
+const colorDe = (i) => COLORES[i % COLORES.length];
+
+const fmtMoney = new Intl.NumberFormat('es-AR', {style:'currency',currency:'ARS',maximumFractionDigits:0});
+const money = (n) => fmtMoney.format(Math.round(n || 0));
+const fechaHora = (d) => new Date(d).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+const fechaDia  = (s) => { const [y,m,d]=String(s).split('-'); return d+'/'+m; };
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Llamadas al servidor
+// ════════════════════════════════════════════════════════════════════════════
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    method: opts.method || 'GET',
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + token },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (res.status === 401) { cerrarSesionLocal(); mostrarLogin(); throw new Error('No autorizado'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Error del servidor');
+  return data;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Sesión
+// ════════════════════════════════════════════════════════════════════════════
+async function login() {
+  const pass = document.getElementById('pass').value;
+  const err  = document.getElementById('loginErr');
+  err.textContent = '';
+  try {
+    const res = await fetch(API + '/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ password: pass }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { err.textContent = data.error || 'No se pudo entrar'; return; }
+    token = data.token;
+    localStorage.setItem('tgi_token', token);
+    demo = false;
+    mostrarApp();
+    cargarTodo();
+  } catch (e) {
+    err.textContent = 'No se pudo conectar con el servidor. Probá el modo demo.';
+  }
+}
+
+function entrarDemo() {
+  demo = true;
+  document.getElementById('demoPill').classList.remove('hidden');
+  mostrarApp();
+  cargarTodo();
+}
+
+async function salir() {
+  if (!demo) { try { await api('/logout', {method:'POST'}); } catch(e){} }
+  cerrarSesionLocal();
+  mostrarLogin();
+}
+function cerrarSesionLocal(){ token=''; demo=false; localStorage.removeItem('tgi_token'); }
+
+function mostrarApp(){ document.getElementById('login').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); }
+function mostrarLogin(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('demoPill').classList.add('hidden');
+  document.getElementById('login').classList.remove('hidden');
+  document.getElementById('pass').value='';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Navegación por pestañas
+// ════════════════════════════════════════════════════════════════════════════
+function cambiarTab(nombre){
+  for (const t of ['ganancias','stock','precios']){
+    document.getElementById('tab-'+t).classList.toggle('hidden', t!==nombre);
+    document.getElementById('tab-btn-'+t).classList.toggle('active', t===nombre);
+  }
+}
+function setRango(d){
+  rango = d;
+  for (const id of ['r7','r30','r0']) document.getElementById(id).classList.remove('active');
+  document.getElementById(d===7?'r7':d===0?'r0':'r30').classList.add('active');
+  cargarVentas();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Carga de datos
+// ════════════════════════════════════════════════════════════════════════════
+async function cargarTodo(){ await cargarProductos(); await cargarVentas(); }
+
+async function cargarProductos(){
+  try {
+    productos = demo ? demoProductos() : await api('/productos');
+    renderStock(); renderPrecios();
+  } catch(e){ if(!demo) toast(e.message,'err'); }
+}
+
+async function cargarVentas(){
+  try {
+    const data = demo ? demoVentas(rango) : await api('/ventas?dias='+rango);
+    renderGanancias(data);
+  } catch(e){ if(!demo) toast(e.message,'err'); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Render · GANANCIAS
+// ════════════════════════════════════════════════════════════════════════════
+function renderGanancias(data){
+  const t = data.totales || {ingresos:0,unidades:0,ticket:0};
+  document.getElementById('kpiIngresos').textContent = money(t.ingresos);
+  document.getElementById('kpiUnidades').textContent = t.unidades;
+  document.getElementById('kpiTicket').textContent   = money(t.ticket);
+  document.getElementById('kpiIngresosSub').textContent =
+    data.rangoDias>0 ? ('últimos '+data.rangoDias+' días') : 'historial completo';
+
+  const top = (data.porSnack && data.porSnack[0]) || null;
+  document.getElementById('kpiTop').textContent = top ? ('Snack '+top.letra) : '—';
+  document.getElementById('kpiTopSub').textContent = top ? (top.nombre || ('('+top.unidades+' u.)')) : ' ';
+
+  // — Gráfico por día —
+  const labels = (data.porDia||[]).map(p=>fechaDia(p.dia));
+  const valores = (data.porDia||[]).map(p=>p.ingresos);
+  if (chartDia) chartDia.destroy();
+  chartDia = new Chart(document.getElementById('chartDia'), {
+    type:'bar',
+    data:{ labels, datasets:[{ data:valores, backgroundColor:'#4f46e5', borderRadius:6, maxBarThickness:26 }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>money(c.parsed.y)}} },
+      scales:{ y:{ ticks:{ callback:v=>'$'+v }, grid:{color:'#eef0f5'} }, x:{ grid:{display:false} } } }
+  });
+
+  // — Gráfico por snack —
+  const ps = data.porSnack || [];
+  if (chartSnack) chartSnack.destroy();
+  chartSnack = new Chart(document.getElementById('chartSnack'), {
+    type:'doughnut',
+    data:{ labels: ps.map(s=>'Snack '+s.letra),
+           datasets:[{ data: ps.map(s=>s.ingresos), backgroundColor: ps.map((s,i)=>colorDe(i)), borderWidth:0 }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{ legend:{position:'bottom',labels:{boxWidth:12,padding:14}},
+                tooltip:{callbacks:{label:c=>c.label+': '+money(c.parsed)}} } }
+  });
+
+  // — Tabla últimas ventas —
+  const tbody = document.getElementById('tablaVentas');
+  const ult = data.ultimas || [];
+  tbody.innerHTML = ult.length ? '' : '<tr><td colspan="4" class="empty">Todavía no hay ventas registradas.</td></tr>';
+  ult.forEach((v,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = '<td><span class="chip" style="background:'+colorDe(letraIdx(v.letra))+'">'+v.letra+'</span></td>'+
+                   '<td>'+(v.nombre||'—')+'</td>'+
+                   '<td class="num">'+money(v.precio)+'</td>'+
+                   '<td class="num">'+fechaHora(v.fecha)+'</td>';
+    tbody.appendChild(tr);
+  });
+}
+function letraIdx(l){ return Math.max(0,'ABCDEFGH'.indexOf(String(l).toUpperCase())); }
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Render · STOCK
+// ════════════════════════════════════════════════════════════════════════════
+function renderStock(){
+  const cont = document.getElementById('stockGrid');
+  if (!productos.length){ cont.innerHTML='<p class="empty">No hay snacks cargados.</p>'; return; }
+  cont.innerHTML='';
+  productos.forEach((p,i)=>{
+    const disp = p.disponibles, cap = p.capacidad || 0;
+    const pct = cap ? Math.round(disp/cap*100) : 0;
+    const color = pct<=15 ? 'var(--danger)' : pct<=40 ? 'var(--warn)' : 'var(--ok)';
+    const flagColor = p.aRellenar>0 ? 'var(--warn)' : 'var(--ok)';
+    const card=document.createElement('div'); card.className='stock-card';
+    card.innerHTML =
+      '<div class="stock-head">'+
+        '<span class="chip" style="background:'+colorDe(i)+'">'+p.letra+'</span>'+
+        '<span class="name">'+(p.nombre||('Snack '+p.letra))+'</span>'+
+        '<span class="price">'+money(p.precio)+'</span>'+
+      '</div>'+
+      '<div class="bar"><span style="width:'+pct+'%;background:'+color+'"></span></div>'+
+      '<div class="stock-meta"><span>Disponible: <b>'+disp+'</b> / '+cap+'</span><span>'+pct+'%</span></div>'+
+      '<div class="refill-flag" style="color:'+flagColor+'">'+
+        (p.aRellenar>0 ? ('⟳ A reponer: '+p.aRellenar+' u.') : '✓ Lleno')+'</div>'+
+      '<button class="btn sec sm" style="width:100%" onclick="recargar(\''+p.letra+'\')">Ya lo recargué</button>';
+    cont.appendChild(card);
+  });
+}
+
+async function recargar(letra){
+  const msg = letra ? ('¿Marcar el snack '+letra+' como recargado (stock a lleno)?')
+                    : '¿Marcar TODOS los snacks como recargados?';
+  if (!confirm(msg)) return;
+  if (demo){
+    productos.forEach(p=>{ if(!letra||p.letra===letra){ p.vendidosDesdeRecarga=0; p.aRellenar=0; p.disponibles=p.capacidad; }});
+    renderStock(); toast('Stock recargado (demo)','ok'); return;
+  }
+  try{
+    await api('/stock/recargar',{method:'POST', body: letra?{letra}:{}});
+    toast('Stock actualizado','ok');
+    await cargarProductos();
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Render · PRECIOS
+// ════════════════════════════════════════════════════════════════════════════
+function renderPrecios(){
+  const cont = document.getElementById('preciosList');
+  if (!productos.length){ cont.innerHTML='<p class="empty">No hay snacks cargados.</p>'; return; }
+  cont.innerHTML='';
+  productos.forEach((p,i)=>{
+    const row=document.createElement('div'); row.className='precio-row';
+    row.innerHTML =
+      '<span class="chip" style="background:'+colorDe(i)+'">'+p.letra+'</span>'+
+      '<div><label>Nombre</label><input id="n_'+p.letra+'" value="'+escapeHtml(p.nombre||'')+'" placeholder="Snack '+p.letra+'"></div>'+
+      '<div><label>Precio</label><div class="inline-prefix"><span>$</span><input id="p_'+p.letra+'" type="number" min="0" step="10" value="'+p.precio+'"></div></div>'+
+      '<div><label>Capacidad</label><input id="c_'+p.letra+'" type="number" min="0" step="1" value="'+p.capacidad+'"></div>'+
+      '<button class="btn sm" onclick="guardarPrecio(\''+p.letra+'\')">Guardar</button>';
+    cont.appendChild(row);
+  });
+}
+
+async function guardarPrecio(letra){
+  const nombre = document.getElementById('n_'+letra).value;
+  const precio = Number(document.getElementById('p_'+letra).value);
+  const capacidad = Number(document.getElementById('c_'+letra).value);
+  if (isNaN(precio)||precio<0){ toast('Precio inválido','err'); return; }
+  if (isNaN(capacidad)||capacidad<0){ toast('Capacidad inválida','err'); return; }
+  if (demo){
+    const p=productos.find(x=>x.letra===letra);
+    if(p){ p.nombre=nombre; p.precio=precio; p.capacidad=capacidad; p.disponibles=Math.max(capacidad-p.vendidosDesdeRecarga,0); }
+    renderStock(); renderPrecios(); toast('Guardado (demo)','ok'); return;
+  }
+  try{
+    await api('/productos/'+letra,{method:'PUT', body:{nombre,precio,capacidad}});
+    toast('Snack '+letra+' guardado','ok');
+    await cargarProductos();
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Utilidades
+// ════════════════════════════════════════════════════════════════════════════
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+let toastTimer=null;
+function toast(msg,tipo){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='show '+(tipo||'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ el.className=el.className.replace('show','').trim(); }, 2600);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Datos de DEMOSTRACIÓN (cuando no hay servidor)
+// ════════════════════════════════════════════════════════════════════════════
+function demoProductos(){
+  return [
+    {letra:'A',nombre:'Papas',     precio:150,capacidad:10,vendidosDesdeRecarga:7, disponibles:3, aRellenar:7, vendidosTotal:42,fechaUltimaRecarga:Date.now()},
+    {letra:'B',nombre:'Chocolate', precio:200,capacidad:10,vendidosDesdeRecarga:2, disponibles:8, aRellenar:2, vendidosTotal:28,fechaUltimaRecarga:Date.now()},
+    {letra:'C',nombre:'Galletitas',precio:180,capacidad:12,vendidosDesdeRecarga:11,disponibles:1, aRellenar:11,vendidosTotal:51,fechaUltimaRecarga:Date.now()},
+    {letra:'D',nombre:'Alfajor',   precio:250,capacidad:8, vendidosDesdeRecarga:0, disponibles:8, aRellenar:0, vendidosTotal:19,fechaUltimaRecarga:Date.now()},
+  ];
+}
+function demoVentas(dias){
+  const n = dias>0 ? dias : 30;
+  const precios = {A:150,B:200,C:180,D:250};
+  const nombres = {A:'Papas',B:'Chocolate',C:'Galletitas',D:'Alfajor'};
+  const porDia=[]; let unidades=0, ingresos=0;
+  const ultimas=[];
+  for (let i=n-1;i>=0;i--){
+    const d=new Date(Date.now()-i*86400000);
+    const dia=d.toISOString().slice(0,10);
+    const u = 2 + Math.round(4+3*Math.sin(i/2)) ;       // 2..9 aprox
+    let ingDia=0;
+    for (let k=0;k<u;k++){
+      const letra='ACBD'[(i+k)%4];
+      ingDia += precios[letra];
+      if (i<2 && ultimas.length<15) ultimas.push({letra,nombre:nombres[letra],precio:precios[letra],fecha:new Date(d.getTime()-k*900000)});
+    }
+    porDia.push({dia,ingresos:ingDia,unidades:u}); unidades+=u; ingresos+=ingDia;
+  }
+  const reparto={A:.30,C:.28,B:.24,D:.18};
+  const porSnack=Object.keys(reparto).map(l=>{ const un=Math.round(unidades*reparto[l]); return {letra:l,nombre:nombres[l],unidades:un,ingresos:un*precios[l]};})
+                  .sort((a,b)=>b.ingresos-a.ingresos);
+  return { rangoDias:dias, totales:{ingresos,unidades,ticket:unidades?Math.round(ingresos/unidades):0}, porSnack, porDia,
+           ultimas: ultimas.slice(0,15) };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Arranque
+// ════════════════════════════════════════════════════════════════════════════
+(function init(){
+  if (token){ mostrarApp(); cargarTodo(); }
+  else { mostrarLogin(); }
+})();
+</script>
+</body>
+</html>
