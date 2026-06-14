@@ -2,7 +2,7 @@
 const express = require('express');
 const crypto  = require('crypto');
 const router  = express.Router();
-const { Producto, Venta } = require('../modelos');   // ← sube de routes/ a la raíz
+const { Producto, Venta } = require('../models/modelos');   // ← sube de routes/ a la raíz
 
 // ── Contraseña simple (se define en Railway como ADMIN_PASSWORD) ──
 const CLAVE = process.env.ADMIN_PASSWORD || 'admin123';

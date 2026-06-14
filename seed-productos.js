@@ -1,7 +1,7 @@
 // seed-productos.js
 require('dotenv').config();
 const mongoose = require('mongoose');
-const { Producto } = require('./modelos');
+const { Producto } = require('./models/modelos');
 
 const URI = process.env.MONGO_URI;
 

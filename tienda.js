@@ -1,5 +1,5 @@
 // tienda.js
-const { Producto, Venta } = require('./modelos');
+const { Producto, Venta } = require('./models/modelos');
 
 // Busca el snack por su letra ('A'...). Devuelve el documento, o null si no existe / está inactivo.
 async function obtenerProducto(letra) {

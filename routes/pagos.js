@@ -4,7 +4,7 @@ const router  = express.Router();
 const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 const Transaccion = require('../models/Transaccion');
 const { registrarVenta } = require('../tienda');     // ← NUEVO
-const { Venta }          = require('../modelos');     // ← NUEVO (para el chequeo anti-duplicado)
+const { Venta }          = require('../models/modelos');     // ← NUEVO (para el chequeo anti-duplicado)
 
 const client = new MercadoPagoConfig({
     accessToken: process.env.MP_ACCESS_TOKEN
