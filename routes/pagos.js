@@ -16,10 +16,11 @@ async function crearOrden(snack, precio) {
     const preference = new Preference(client);
 
     const resultado = await preference.create({
-        body: {
-            items: [{ title: snack, quantity: 1, unit_price: precio }]
-        }
-    });
+    body: {
+        items: [{ title: snack, quantity: 1, unit_price: precio }],
+        notification_url: 'https://maquina-expendedora-servidor-production.up.railway.app/pagos/webhook?source_news=webhooks'
+    }
+});
 
     orden_id = resultado.id;
 
