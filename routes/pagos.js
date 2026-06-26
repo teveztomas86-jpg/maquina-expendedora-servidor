@@ -18,6 +18,7 @@ async function crearOrden(snack, precio) {
     const resultado = await preference.create({
     body: {
         items: [{ title: snack, quantity: 1, unit_price: precio }],
+        external_reference: snack,                                   // ← la letra viaja acá
         notification_url: 'https://maquina-expendedora-servidor-production.up.railway.app/pagos/webhook?source_news=webhooks'
     }
 });
@@ -42,7 +43,7 @@ router.post('/webhook', async (req, res) => {
         const resultado = await payment.get({ id: data.id });
         //console.log("PAGO COMPLETO:", JSON.stringify(resultado, null, 2));
 
-        const snack    = resultado.additional_info?.items?.[0]?.title  || 'desconocido';
+        const snack = resultado.external_reference || 'desconocido';
         const precio   = resultado.transaction_amount                  || 0;
         const webhook_id = resultado.id;
 
