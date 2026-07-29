@@ -19,7 +19,7 @@ async function crearOrden(snack, precio) {
     body: {
         items: [{ title: snack, quantity: 1, unit_price: precio }],
         external_reference: snack,                                   // ← la letra viaja acá
-        notification_url: 'https://maquina-expendedora-servidor.fly.dev/pagos/webhook?source_news=webhooks'
+        notification_url: 'https://maquina-expendedora-servidor-production-31a2.up.railway.app/pagos/webhook?source_news=webhooks'
     }
 });
 
