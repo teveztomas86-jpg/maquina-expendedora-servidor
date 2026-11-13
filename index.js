@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.static('public'));   // ← NUEVO: sirve el panel en /admin/
 
 // ── Conexión a MongoDB ────────────────────────────────────
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, { dbName: 'maquina' })
     .then(() => console.log('✅ MongoDB conectado'))
     .catch(err => console.error('❌ Error MongoDB:', err));
 
